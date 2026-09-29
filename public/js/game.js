@@ -149,6 +149,9 @@ export class Game {
         const res = await this.ai.analyze(call.text);
         call.ai = res;
         this.applyDecision(call, res);
+        this.current = null;
+        // Keep the decision on screen for a moment before the next caller starts talking.
+        await sleep(Math.max(800, 1800 / Math.sqrt(this.speed)));
       } catch (err) {
         call.status = 'queued';
         this.emit('onAIError', err, call);

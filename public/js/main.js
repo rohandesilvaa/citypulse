@@ -77,7 +77,8 @@ async function connect() {
         const st = await ai.status();
         if (st.state === 'ready') {
           ai.ready = true;
-          $('modelDevice').textContent = `ModernBERT-L 421M · ${st.device}`;
+          $('modelDevice').textContent = st.device;
+          $('modelChip').title = `${st.model} · ModernBERT-large, 421M params · running on ${st.device}`;
           setPill('online', 'Laya ready');
           setIntro('ok', `Laya ready on <code>${st.device}</code> · ${st.model}`);
           ai.loadQuestions().then((q) => { $('promptText').textContent = JSON.stringify(q, null, 2); });

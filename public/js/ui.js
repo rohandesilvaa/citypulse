@@ -184,6 +184,7 @@ export class UI {
     this.typing = { text: call.text, i: 0, shown: -1, done: false };
     $('probeStat').textContent = 'listening…';
     $('probeStat').classList.remove('run');
+    $('probe').classList.add('stale'); // previous call's numbers fade out until Laya answers
     const d = $('decision');
     d.dataset.service = 'thinking';
     $('decIcon').textContent = '👂';
@@ -253,7 +254,7 @@ export class UI {
   decision(call, res) {
     const d = res.decision;
     if (this.typing) { this.typing.i = this.typing.text.length; this.typing.done = true; }
-    $('probe').classList.remove('scanning');
+    $('probe').classList.remove('scanning', 'stale');
     $('probeStat').classList.remove('run');
     $('probeStat').textContent = `${res.ms.toFixed(0)} ms · ${res.device || ''}`;
     this.renderBars($('pService'), d.probs.service, SVC_COLORS, { top: d.service });
