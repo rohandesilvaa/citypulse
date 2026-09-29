@@ -1,0 +1,29 @@
+# Python virtual environment (recreated by ./start.sh)
+.venv/
+venv/
+
+# Python caches
+__pycache__/
+*.py[cod]
+
+# Logs
+*.log
+
+# Local environment / secrets (e.g. HF_TOKEN, LAYA_API_KEY)
+.env
+.env.*
+
+# Model files - Laya downloads to ~/.cache/huggingface, but keep any local copies out of git
+*.safetensors
+*.onnx
+*.bin
+
+# Claude Code local config
+.claude/
+
+# macOS
+.DS_Store
+
+# Editors
+.vscode/
+.idea/

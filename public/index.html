@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CityPulse · Laya Dispatch</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚨</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- ============ TOP BAR ============ -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">
+          <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3 4 8v8c0 7 5.2 11.6 12 13 6.8-1.4 12-6 12-13V8L16 3Z" fill="url(#lg)"/><path d="M14 10h4v4h4v4h-4v4h-4v-4h-4v-4h4z" fill="#fff"/><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff6b35"/><stop offset="1" stop-color="#e5484d"/></linearGradient></defs></svg>
+        </div>
+        <div class="brand-text">
+          <h1>CityPulse</h1>
+          <span>AI call triage · powered by Laya, running on this Mac</span>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat big"><label>Score</label><b id="stScore">0</b></div>
+        <div class="stat"><label>AI accuracy</label><b id="stAcc">—</b></div>
+        <div class="stat"><label>Urgency match</label><b id="stUrg">—</b></div>
+        <div class="stat"><label>Lives saved</label><b id="stSaved" class="good">0</b></div>
+        <div class="stat"><label>Pranks filtered</label><b id="stPranks">0</b></div>
+        <div class="stat"><label>Missed</label><b id="stMissed" class="bad">0</b></div>
+      </div>
+
+      <div class="top-actions">
+        <div class="ai-pill" id="aiPill" data-state="connecting"><i></i><span id="aiPillText">Connecting…</span></div>
+        <div class="model-chip" id="modelChip" title="Decision model">
+          <svg viewBox="0 0 24 24"><path d="M12 2a4 4 0 0 1 4 4v1h1a3 3 0 0 1 3 3v1a3 3 0 0 1-1 2.2V15a3 3 0 0 1-3 3h-1v1a3 3 0 0 1-6 0v-1H8a3 3 0 0 1-3-3v-1.8A3 3 0 0 1 4 11v-1a3 3 0 0 1 3-3h1V6a4 4 0 0 1 4-4Z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+          <b>laya</b><span id="modelDevice">…</span>
+        </div>
+        <button class="btn primary" id="btnCall" title="Type your own emergency call (C)">
+          <svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          Make a call
+        </button>
+        <button class="icon-btn" id="btnSound" title="Sound (M)"><span>🔊</span></button>
+        <button class="icon-btn" id="btnVoice" title="Read calls aloud (V)"><span>🗣️</span></button>
+      </div>
+    </header>
+
+    <main>
+      <!-- ============ LEFT: CALL QUEUE ============ -->
+      <aside class="panel calls-panel">
+        <div class="panel-head">
+          <div class="ph-title"><span class="live-dot"></span>Incoming calls</div>
+          <span class="count" id="callCount">0 active</span>
+        </div>
+        <div class="call-list" id="callList">
+          <div class="empty" id="callEmpty">
+            <div class="radar"><i></i><i></i><i></i></div>
+            <p>Waiting for the phone to ring…</p>
+          </div>
+        </div>
+        <div class="panel-foot">
+          <div class="foot-row"><span>Avg forward pass</span><b id="stLatency">—</b></div>
+          <div class="foot-row"><span>Running on</span><b id="stTps">—</b></div>
+          <div class="foot-row"><span>Calls handled</span><b id="stHandled">0</b></div>
+        </div>
+      </aside>
+
+      <!-- ============ CENTER: MAP ============ -->
+      <section class="map-wrap" id="mapWrap">
+        <canvas id="map"></canvas>
+
+        <div class="map-hud top-left">
+          <div class="hud-card clock">
+            <span class="hud-label">NIGHT SHIFT</span>
+            <b id="stClock">20:00</b>
+          </div>
+        </div>
+
+        <div class="map-hud top-right">
+          <div class="hud-card controls">
+            <button class="icon-btn" id="btnPause" title="Pause / resume (Space)">
+              <svg id="icoPause" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+              <svg id="icoPlay" viewBox="0 0 24 24" hidden><path d="M7 5v14l12-7z"/></svg>
+            </button>
+            <div class="seg" id="speedSeg">
+              <button data-speed="1" class="on">1×</button><button data-speed="2">2×</button><button data-speed="4">4×</button>
+            </div>
+            <div class="seg" id="rateSeg">
+              <button data-rate="calm">Calm</button><button data-rate="normal" class="on">Normal</button><button data-rate="busy">Busy</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="map-hud bottom-left">
+          <div class="hud-card fleet" id="fleet"></div>
+        </div>
+
+        <div class="map-hud bottom-right">
+          <div class="hud-card legend">
+            <span><i style="--c:var(--pending)"></i>AI analyzing</span>
+            <span><i style="--c:var(--fire)"></i>Fire</span>
+            <span><i style="--c:var(--amb)"></i>Ambulance</span>
+            <span><i style="--c:var(--police)"></i>Police</span>
+            <span><i style="--c:var(--ignore)"></i>Ignored</span>
+          </div>
+        </div>
+
+        <div class="tooltip" id="tooltip" hidden></div>
+        <div class="toasts" id="toasts"></div>
+        <div class="paused-badge" id="pausedBadge" hidden>PAUSED</div>
+      </section>
+
+      <!-- ============ RIGHT: AI BRAIN ============ -->
+      <aside class="panel ai-panel">
+        <div class="panel-head">
+          <div class="ph-title"><span class="brain-dot" id="brainDot"></span>AI dispatcher</div>
+          <button class="ghost-btn" id="btnPrompt">View questions</button>
+        </div>
+
+        <div class="ai-call" id="aiCall">
+          <div class="ai-idle" id="aiIdle">
+            <div class="wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <p id="aiIdleText">Listening for calls…</p>
+          </div>
+          <div class="ai-active" id="aiActive" hidden>
+            <div class="caller-row">
+              <div class="avatar" id="aiAvatar">NP</div>
+              <div class="caller-meta">
+                <b id="aiCaller">—</b>
+                <span id="aiAddr">—</span>
+              </div>
+              <span class="call-timer" id="aiTimer">00:00</span>
+            </div>
+            <p class="transcript" id="aiTranscript"></p>
+          </div>
+        </div>
+
+        <div class="probe" id="probe">
+          <div class="probe-head">
+            <span class="probe-title">Laya output <small>one forward pass · no text generation</small></span>
+            <span class="probe-stat" id="probeStat">idle</span>
+          </div>
+          <div class="probe-grid">
+            <div class="pgroup"><h6>Service <small>blended</small></h6><div class="pbars" id="pService"></div></div>
+            <div class="pgroup"><h6>Urgency <small>score</small></h6><div class="pbars" id="pUrgency"></div></div>
+          </div>
+          <div class="pgroup checks"><h6>Yes/no checks <small>P(yes)</small></h6><div class="chk" id="pChecks"></div></div>
+          <div class="pgroup inc"><h6>Incident type <small>top 3 of 12</small></h6><div class="pbars" id="pIncident"></div></div>
+        </div>
+
+        <div class="decision" id="decision" data-service="none">
+          <div class="dec-main">
+            <div class="dec-icon" id="decIcon">🤖</div>
+            <div class="dec-text">
+              <span class="dec-label">Decision</span>
+              <b id="decService">Waiting…</b>
+              <span class="dec-incident" id="decIncident">&nbsp;</span>
+            </div>
+            <div class="dec-verdict" id="decVerdict"></div>
+          </div>
+          <div class="dec-bars">
+            <div class="bar-row">
+              <span>Urgency</span>
+              <div class="urg" id="decUrg"><i></i><i></i><i></i><i></i></div>
+              <b id="decUrgText">—</b>
+            </div>
+            <div class="bar-row">
+              <span>Confidence</span>
+              <div class="conf"><i id="decConf"></i></div>
+              <b id="decConfText">—</b>
+            </div>
+          </div>
+          <p class="dec-reason" id="decReason">Laya's probabilities will appear here.</p>
+        </div>
+
+        <div class="tabs">
+          <button data-tab="log" class="on">Decision log</button>
+          <button data-tab="report">Model report</button>
+        </div>
+        <div class="tab-body" id="tabLog">
+          <div class="log-empty">No decisions yet.</div>
+        </div>
+        <div class="tab-body" id="tabReport" hidden>
+          <div class="report-block">
+            <h4>Confusion matrix <small>truth ↓ · AI decision →</small></h4>
+            <div class="matrix" id="matrix"></div>
+          </div>
+          <div class="report-block">
+            <h4>Per-service accuracy</h4>
+            <div class="class-bars" id="classBars"></div>
+          </div>
+          <div class="report-block">
+            <h4>Decision latency <small>last 40 calls</small></h4>
+            <canvas id="latChart" height="90"></canvas>
+          </div>
+          <div class="report-block">
+            <h4>Outcomes</h4>
+            <div class="outcomes" id="outcomes"></div>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <!-- ============ INTRO ============ -->
+  <div class="overlay" id="intro">
+    <div class="intro-card">
+      <div class="intro-badge">🚨 LAYA DISPATCH · LOCAL AI DEMO</div>
+      <h2>CityPulse</h2>
+      <p class="intro-lead">Calls come in from all over the city. <b>Laya</b>, a System&nbsp;1 decision model running <b>on this Mac</b>, reads each call and decides
+        <span class="chip fire">🔥 Fire</span> <span class="chip amb">🚑 Ambulance</span> <span class="chip pol">🚨 Police</span> or
+        <span class="chip ign">🚫 Ignore (prank)</span>, plus how urgent it is, with a calibrated probability for every option, all in a single forward pass (no text generation). The code then sends the nearest free unit across the map.</p>
+      <div class="steps">
+        <div class="step"><span>📞</span><b>Call rings</b><small>English transcript</small></div>
+        <div class="arrow">→</div>
+        <div class="step"><span>🧠</span><b>Laya decides</b><small>typed answers + probabilities</small></div>
+        <div class="arrow">→</div>
+        <div class="step"><span>🚒</span><b>Units roll</b><small>pathfinding in code</small></div>
+        <div class="arrow">→</div>
+        <div class="step"><span>🏆</span><b>Scored</b><small>vs. hidden truth</small></div>
+      </div>
+      <div class="intro-status" id="introStatus" data-state="checking">
+        <i></i><span id="introStatusText">Connecting to the local server…</span>
+      </div>
+      <div class="intro-actions">
+        <button class="btn primary lg" id="btnStart">Start shift ▶</button>
+      </div>
+      <p class="intro-hint">Runs automatically. <kbd>Space</kbd> pause · <kbd>C</kbd> make your own call · <kbd>1</kbd><kbd>2</kbd><kbd>4</kbd> speed</p>
+    </div>
+  </div>
+
+  <!-- ============ CUSTOM CALL ============ -->
+  <div class="overlay" id="callModal" hidden>
+    <div class="modal-card">
+      <h3>📞 Make an emergency call</h3>
+      <p>Type what the caller says (English). The call appears at a random address and the AI decides what to send.</p>
+      <textarea id="callText" rows="4" maxlength="400" placeholder="e.g. My neighbour's car is on fire and the flames are spreading to the shop!"></textarea>
+      <div class="suggest" id="suggest">
+        <button>A taxi crashed into a wall and the driver is bleeding badly!</button>
+        <button>There's a dog chasing kids near the school, it hasn't bitten anyone yet.</button>
+        <button>My house is on fire and my cat is still inside!</button>
+        <button>Hello, is this the Chinese restaurant? One fried rice please.</button>
+      </div>
+      <div class="modal-actions">
+        <button class="btn ghost" id="callCancel">Cancel</button>
+        <button class="btn primary" id="callSend">Send call</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PROMPT VIEWER ============ -->
+  <div class="overlay" id="promptModal" hidden>
+    <div class="modal-card wide">
+      <h3>🧠 What Laya is asked</h3>
+      <p>Every call goes to <code>POST /api/decide</code> on the local server, which runs <code>agent.predict({"caller_transcript": …}, questions)</code>. Laya scores every option at its own [MASK] token and returns a probability per option. There's no prompt to parse and no text generation.</p>
+      <div class="prompt-grid">
+        <div><h5>Typed questions (sent with every call)</h5><pre id="promptText"></pre></div>
+        <div><h5>Last raw answer</h5><pre id="schemaText">No calls analyzed yet.</pre></div>
+      </div>
+      <div class="modal-actions"><button class="btn primary" id="promptClose">Close</button></div>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
