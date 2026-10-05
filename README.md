@@ -8,7 +8,7 @@ An auto-playing city dispatch game where every incoming emergency call is triage
 [**Laya**](https://huggingface.co/convaiinnovations/laya), a non-generative decision model
 that answers typed questions with calibrated probabilities. No LLM, no text generation, no cloud.
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?logo=python&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-MPS%20fp16-EE4C2C?logo=pytorch&logoColor=white)
 ![Laya](https://img.shields.io/badge/Model-Laya%20·%20ModernBERT--large%20421M-FFB020)
 ![JavaScript](https://img.shields.io/badge/Frontend-Vanilla%20JS%20%2B%20Canvas-F7DF1E?logo=javascript&logoColor=black)
@@ -102,7 +102,7 @@ Measured on a MacBook Air (M2, 8 GB) over the game's 62 scripted calls:
 
 ## 🚀 Run it
 
-Requires macOS on Apple Silicon (it also runs on CPU, but slowly) and Python 3.10+.
+Requires macOS on Apple Silicon (it also runs on CPU, but slowly) and Python 3.12+.
 
 ```bash
 git clone https://github.com/<your-username>/CityPulse.git
@@ -110,7 +110,7 @@ cd CityPulse
 ./start.sh
 ```
 
-On the first run `start.sh` creates `.venv/`, runs `pip install laya`, downloads the Laya checkpoint
+On the first run `start.sh` creates `.venv/`, installs the locked versions from `requirements.txt`, downloads the Laya checkpoint
 (~800 MB) from Hugging Face, and opens <http://localhost:8080>. Click **Start shift** and it plays itself.
 
 | Key | Action |
@@ -128,6 +128,7 @@ or add `?seed=7` to the URL for a different city.
 ```
 server.py            runs Laya in-process · POST /api/decide → agent.predict(state, QUESTIONS) → blend
 start.sh             one-command setup + launch
+requirements.txt     locked dependency versions (laya 0.3.21, torch 2.14.0, transformers 5.17.0)
 public/index.html    layout: call queue · city map · AI panel
 public/js/calls.js   scripted English calls + hidden ground truth (never sent to the model)
 public/js/ai.js      client for /api/decide
